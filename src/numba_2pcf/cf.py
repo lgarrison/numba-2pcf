@@ -1,5 +1,12 @@
 '''
 A simple 2PCF, using a particle grid and N^2
+
+Layout
+------
+- `_do_cell_pair()` contains the core computation;
+- `_2pcf()` contains the loop over cell pairs;
+- `numba_2pcf()` is the main entry point.
+
 '''
 
 import numpy as np
@@ -141,6 +148,8 @@ def numba_2pcf(pos, box, Rmax, nbin, nthread=-1, n1djack=None, pg_kwargs=None,
     n1djack: int, optional
         Number of jackknife patches per dimension. Patches
         are sub-cubes. Default of None means to not do jackknife.
+        Results are returned as columns in the `res` table whose
+        names are prefixed with `jack_`.
 
     pg_kwargs: dict, optional
         Any keyword arguments to pass directly to the `particle_grid`
@@ -149,6 +158,13 @@ def numba_2pcf(pos, box, Rmax, nbin, nthread=-1, n1djack=None, pg_kwargs=None,
     corrfunc: bool, optional
         Use Corrfunc instead. Useful for debugging.
         Default: False.
+
+    Returns
+    -------
+    res: astropy.Table
+        An Astropy Table with the 2PCF measurement, of length `nbin`.
+        Contains at least the columns `rmin`, `rmax`, `rmid`, `npairs`,
+        and `xi`.  The `res.meta` dict holds metadata.
     '''
     if pg_kwargs is None:
         pg_kwargs = {}
@@ -188,13 +204,15 @@ def numba_2pcf(pos, box, Rmax, nbin, nthread=-1, n1djack=None, pg_kwargs=None,
     RR = np.diff(edges**3) * 4/3*np.pi * N*(N-1)/box**3
     xi = counts/RR - 1
     
+    meta = dict(corrfunc=corrfunc, box=box, nthread=nthread, n1djack=n1djack)
     t = Table(dict(rmin=edges[:-1],
                    rmax=edges[1:],
                    rmid=(edges[1:] + edges[:-1])/2,
                    xi=xi,
                    npairs=counts,
                   ),
-                meta=dict(corrfunc=corrfunc))
+                meta=meta,
+            )
     
     if n1djack:
         jack = jackknife(n1djack, pos, box, Rmax, nbin, nthread=nthread, pg_kwargs=pg_kwargs,
@@ -208,6 +226,9 @@ def numba_2pcf(pos, box, Rmax, nbin, nthread=-1, n1djack=None, pg_kwargs=None,
 
 
 def jackknife(n1djack, pos, box, Rmax, nbin, nthread=-1, corrfunc=False, pg_kwargs=None):
+    '''Run a drop-1 jackknife covariance estimator, using `n1djack`^3 cubic subvolumes.
+    Usually this would be called from `numba_2pcf(..., n1djack=n1d)`.
+    '''
     # use the chaining mesh to generate patches
     psort, offsets = particle_grid.particle_grid(pos, n1djack, box, nthread=nthread)
     del pos  # careful!
