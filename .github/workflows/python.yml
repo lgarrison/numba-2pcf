@@ -19,6 +19,8 @@ jobs:
         include:
           - python-version: '3.9'
             tox-env: 'py39'
+          - python-version: '3.8'
+            tox-env: 'py38'
 
     steps:
       - uses: actions/checkout@v2
@@ -39,16 +41,16 @@ jobs:
       - name: Run tests
         run: python -m tox -e ${{ matrix.tox-env }}
 
-      - name: Save coverage
-        uses: AndreMiras/coveralls-python-action@v20201129
-        with:
-          parallel: true
+      #- name: Save coverage
+      #  uses: AndreMiras/coveralls-python-action@v20201129
+      #  with:
+      #    parallel: true
 
-  coverage:
-    needs: tests
-    runs-on: ubuntu-latest
-    steps:
-      - name: Combine and upload coverage
-        uses: AndreMiras/coveralls-python-action@v20201129
-        with:
-          parallel-finished: true
+  #coverage:
+  #  needs: tests
+  #  runs-on: ubuntu-latest
+  #  steps:
+  #    - name: Combine and upload coverage
+  #      uses: AndreMiras/coveralls-python-action@v20201129
+  #      with:
+  #        parallel-finished: true
