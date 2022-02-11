@@ -57,7 +57,8 @@ in any bin).
 
 As a demonstration that this code provides passably good performance,
 here's a dummy test of 10<sup>7</sup> unclustered data points in a 2 Gpc/*h* box
-(so number density 1.2e-3), with Rmax=200 Mpc/h and bin width of 1 Mpc/*h*:
+(so number density 1.2e-3 *h*<sup>3</sup>/Mpc<sup>3</sup>), with Rmax=150 Mpc/h
+and bin width of 1 Mpc/*h*:
 
 ```python
 from numba_2pcf.cf import numba_2pcf
