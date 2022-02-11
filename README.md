@@ -1,6 +1,6 @@
 # numba-2pcf
 
-[![tests](https://github.com/lgarrison/numba-2pcf/actions/workflows/test.yml/badge.svg)](https://github.com/lgarrison/numba-2pcf/actions/workflows/test.yml)
+[![tests](https://github.com/lgarrison/numba-2pcf/actions/workflows/python.yml/badge.svg)](https://github.com/lgarrison/numba-2pcf/actions/workflows/test.yml)
 
 A Numba-based two-point correlation function (2PCF) calculator using a grid decomposition.
 Like [Corrfunc](https://github.com/manodeep/corrfunc), but written in Numba,
