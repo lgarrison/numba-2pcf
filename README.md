@@ -47,7 +47,6 @@ res.pprint_all()
  0.04500000067055226  0.05000000074505806  0.04750000070780516 -0.00011690771042793813 17734818
 ```
 
-
 ## Performance
 The goal of this project is not to provide the absolute best performance that
 given hardware can produce, but it *is* a goal to provide as good performance
@@ -77,6 +76,38 @@ So within a factor of 3 of Corrfunc, and we aren't even exploiting the
 symmetry of the autocorrelation (i.e. we count every pair twice). Not bad!
 
 
+## Modifying the Code
+The code is laid out in two files: [`src/numba_2pcf/cf.py`](src/numba_2pcf/cf.py)
+and [`src/numba_2pcf/particle_grid.py`](src/numba_2pcf/particle_grid.py).  As the
+names suggest, `particle_grid.py` organizes the particles into cells, and `cf.py`
+does something with those cells (in this case, compute the 2PCF).
+
+We'll focus on `cf.py`, since most users will want to modify that.
+
+There are three important functions in `cf.py`:
+- `_do_cell_pair()` contains the core computation;
+- `_2pcf()` contains the loop over cell pairs;
+- `numba_2pcf()` is the main entry point.
+
+If all you need is to add some new pair-wise statistic, then you'll want to modify
+`_do_cell_pair()`.  You may need to add new argument(s) to take new inputs (like weights)
+or outputs (like your new statistic).  This means you'll also need to modify the
+calling function, `_2pcf()`, so it can pass the new args.  Follow the example of
+`npairs`: make an array like
+```python
+thread_mystat = np.zeros((nthread,nbin), dtype=np.int64)
+```
+whose outer dimension is over threads, then have each thread `t` pass `thread_mystat[t]`
+to `_do_cell_pair()`.  After the cell pairs are done, perform a reduction over threads,
+which is just a sum in the case of pair counts:
+```python
+mystat = thread_mystat.sum(axis=0)
+```
+
+Then, all that remains is to return that new statistic to `numba_2pcf()` and add it
+as a column in the Astropy Table passed back to the user.
+
+
 ## Testing Against Corrfunc
 The code is [tested against Corrfunc](tests/test_cf.py). And actually, the
 `numba_2pcf()` function takes a flag `corrfunc=True` that calls Corrfunc
@@ -99,7 +130,7 @@ tractable for many realistic problems in cosmology and large-scale structure.
 A numba implementation isn't likely to beat Corrfunc on speed, but numba
 can still be fast enough to be useful (especially when the computation parallelizes
 well).  The idea is that this code provides a "fast enough" parallel implementation
-while still being highly readable --- the 2PCF implementation is about 150 lines
+while still being highly readable—the 2PCF implementation is about 150 lines
 of code, and the gridding scheme 100 lines.
 
 
