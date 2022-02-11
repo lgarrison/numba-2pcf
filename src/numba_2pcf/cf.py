@@ -22,18 +22,10 @@ _fastmath = True
 _parallel = True
 
 @nb.njit(fastmath=_fastmath)
-def _1d_to_3d(i,ngrid):
-    '''i is flat index, n1d is grid size'''
-    
-    X = np.empty(3,dtype=np.int64)
-    X[0] = i // (ngrid[1]*ngrid[2])
-    X[1] = i // ngrid[2] - X[0]*ngrid[2]
-    X[2] = i % ngrid[2]
-    
-    return X
-
-@nb.njit(fastmath=_fastmath)
-def _do_cell_pair(pos1, pos2, Rmax, nbin, Xoff, counts):
+def _do_cell_pair(pos1, pos2, Rmax, nbin, Xoff, npairs):
+    '''Compute a statistic on a pair of cells, applying
+    offset `Xoff` to account for the periodic wrap.
+    '''
     dtype = pos1.dtype
     inv_bw = dtype.type(nbin/Rmax)
     Rmax2 = Rmax*Rmax
@@ -59,11 +51,14 @@ def _do_cell_pair(pos1, pos2, Rmax, nbin, Xoff, counts):
                 continue
             r = np.sqrt(r2)
             b = int(r*inv_bw)
-            counts[b] += 1
-    
+            npairs[b] += 1
+
 
 @nb.njit(parallel=_parallel,fastmath=_fastmath)
 def _2pcf(psort, offsets, ngrid, box, Rmax, nbin):
+    '''Loop over all pairs of neighboring cells in parallel,
+    accumulating a pair-wise statistic like the 2PCF.
+    '''
     dtype = psort.dtype
     
     ncell = np.prod(ngrid)
@@ -72,8 +67,9 @@ def _2pcf(psort, offsets, ngrid, box, Rmax, nbin):
     nw = np.array([3,3,3])  # neighbor width
     nneigh = np.prod(nw)
     
+    pad = 8  # pad each thread's workspace for performance
     nthread = nb.get_num_threads()
-    thread_counts = np.zeros((nthread,nbin), dtype=np.int64)
+    thread_npairs = np.zeros((nthread,nbin+pad), dtype=np.int64)
     
     # loop over cell pairs
     for cpair in nb.prange(ncell*nneigh):
@@ -110,15 +106,28 @@ def _2pcf(psort, offsets, ngrid, box, Rmax, nbin):
         _do_cell_pair(psort[s[c]:s[c+1]],
                       psort[s[d]:s[d+1]],
                       Rmax, nbin, Xoff,
-                      thread_counts[t],
+                      thread_npairs[t],
                       )
     
-    counts = thread_counts.sum(axis=0)
+    # sum over threads, removing the padding
+    npairs = thread_npairs[:,:nbin].sum(axis=0)
     
     # no self-counts
-    counts[0] -= len(psort)
+    npairs[0] -= len(psort)
     
-    return counts
+    return npairs
+
+
+@nb.njit(fastmath=_fastmath)
+def _1d_to_3d(i,ngrid):
+    '''i is flat index, n1d is grid size'''
+    
+    X = np.empty(3,dtype=np.int64)
+    X[0] = i // (ngrid[1]*ngrid[2])
+    X[1] = i // ngrid[2] - X[0]*ngrid[2]
+    X[2] = i % ngrid[2]
+    
+    return X
 
 
 def numba_2pcf(pos, box, Rmax, nbin, nthread=-1, n1djack=None, pg_kwargs=None,
