@@ -38,6 +38,7 @@ EXTRA_REQUIRE = {
     "test": [
         "pytest",
         "pytest-cov",
+        "corrfunc",
     ],
 }
 
