@@ -8,8 +8,10 @@ with simplicity and hackability in mind.
 
 ## Installation
 
+The code is meant to be downloaded and modified, so the recommended workflow is to make a fork, then clone your fork, and install:
 ```console
-$ git clone https://github.com/lgarrison/numba-2pcf.git
+# First, fork the code on GitHub. Then:
+$ git clone git@github.com:<your-github-username>/numba-2pcf.git
 $ cd numba-2pcf
 $ python -m pip install -e .
 ```
