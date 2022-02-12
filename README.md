@@ -3,7 +3,7 @@
 [![tests](https://github.com/lgarrison/numba-2pcf/actions/workflows/python.yml/badge.svg)](https://github.com/lgarrison/numba-2pcf/actions/workflows/test.yml)
 
 A Numba-based two-point correlation function (2PCF) calculator using a grid decomposition.
-Like [Corrfunc](https://github.com/manodeep/corrfunc), but written in Numba,
+Like [Corrfunc](https://github.com/manodeep/corrfunc), but written in [Numba](https://numba.pydata.org/),
 with simplicity and hackability in mind.
 
 Aside from the 2PCF calculation, the `particle_grid` module is both simple and
@@ -78,6 +78,7 @@ symmetry of the autocorrelation (i.e. we count every pair twice). Not bad!
 
 
 ## Modifying the Code
+### Typical workflow
 The code is laid out in two files: [`src/numba_2pcf/cf.py`](src/numba_2pcf/cf.py)
 and [`src/numba_2pcf/particle_grid.py`](src/numba_2pcf/particle_grid.py).  As the
 names suggest, `particle_grid.py` organizes the particles into cells, and `cf.py`
@@ -108,8 +109,17 @@ mystat = thread_mystat.sum(axis=0)
 Then, all that remains is to return that new statistic to `numba_2pcf()` and add it
 as a column in the Astropy Table passed back to the user.
 
+### Debugging
+One of the benefits of a Numba implementation is that you can always comment out
+the `@numba.njit` decorators, and the Numba code will become plain Python code.
+And it's a lot easier to debug plain Python than Numba!
 
-## Testing Against Corrfunc
+Here are a few other debugging tips:
+- Set `_parallel = False` at the top of `cf.py`.
+- Call `numba_2pcf()` with `nthread=1`
+- Make sure your modified code still gives the raw pair counts as Corrfunc (use `corrfunc=True` in `numba_2pcf()`)
+
+### Testing Against Corrfunc
 The code is [tested against Corrfunc](tests/test_cf.py). And actually, the
 `numba_2pcf()` function takes a flag `corrfunc=True` that calls Corrfunc
 instead of the Numba implementation to make such testing even easier.
@@ -128,7 +138,7 @@ This grid decomposition prunes distant pairwise comparisons, so even though
 the runtime still formally scales as O(N<sup>2</sup>), it makes the 2PCF
 tractable for many realistic problems in cosmology and large-scale structure.
 
-A numba implementation isn't likely to beat Corrfunc on speed, but numba
+A Numba implementation isn't likely to beat Corrfunc on speed, but Numba
 can still be fast enough to be useful (especially when the computation parallelizes
 well).  The idea is that this code provides a "fast enough" parallel implementation
 while still being highly readable—the 2PCF implementation is about 150 lines
