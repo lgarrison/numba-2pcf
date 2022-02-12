@@ -121,7 +121,7 @@ The code is [tested against Corrfunc](tests/test_cf.py). And actually, the
 instead of the Numba implementation to make such testing even easier.
 
 
-## Details
+## Algorithmic Details
 `numba_2pcf` works a lot like Corrfunc, or any other grid-based 2PCF code: the
 3D volume is divided into a grid of cells at least `Rmax` in size, where `Rmax`
 is the maximum radius of the correlation function measurement. Then, we know
