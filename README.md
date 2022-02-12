@@ -6,10 +6,6 @@ A Numba-based two-point correlation function (2PCF) calculator using a grid deco
 Like [Corrfunc](https://github.com/manodeep/corrfunc), but written in [Numba](https://numba.pydata.org/),
 with simplicity and hackability in mind.
 
-Aside from the 2PCF calculation, the `particle_grid` module is both simple and
-fast and may be useful on its own as a way to partition particle sets in 3D.
-
-
 ## Installation
 
 ```console
@@ -65,7 +61,7 @@ from numba_2pcf.cf import numba_2pcf
 import numpy as np
 
 rng = np.random.default_rng(123)
-N = 10**6
+N = 10**7
 box = 2000
 pos = rng.random((N,3), dtype=np.float32)*box
 
@@ -97,7 +93,7 @@ or outputs (like your new statistic).  This means you'll also need to modify the
 calling function, `_2pcf()`, so it can pass the new args.  Follow the example of
 `npairs`: make an array like
 ```python
-thread_mystat = np.zeros((nthread,nbin), dtype=np.int64)
+thread_mystat = np.zeros((nthread,nbin), dtype=np.float64)
 ```
 whose outer dimension is over threads, then have each thread `t` pass `thread_mystat[t]`
 to `_do_cell_pair()`.  After the cell pairs are done, perform a reduction over threads,
