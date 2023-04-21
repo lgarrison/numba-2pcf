@@ -11,9 +11,14 @@ with simplicity and hackability in mind.
 The code is meant to be downloaded and modified, so the recommended workflow is to make a fork, then clone your fork, and install:
 ```console
 # First, fork the code on GitHub. Then:
-$ git clone git@github.com:<your-github-username>/numba-2pcf.git
+$ git clone git@github.com:your-github-username/numba-2pcf.git
 $ cd numba-2pcf
 $ python -m pip install -e .
+```
+
+If you just want to try it out, you can install it directly from GitHub:
+```console
+$ pip install git+https://github.com/lgarrison/numba-2pcf.git
 ```
 
 ## Example
