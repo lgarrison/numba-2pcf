@@ -1,4 +1,4 @@
-name: Python
+name: Tests
 
 on:
   push:
@@ -17,6 +17,8 @@ jobs:
     strategy:
       matrix:
         include:
+          - python-version: '3.10'
+            tox-env: 'py310'
           - python-version: '3.9'
             tox-env: 'py39'
           - python-version: '3.8'
