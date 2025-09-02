@@ -42,7 +42,7 @@ jobs:
 
       - name: Install GSL
         run: |
-          apt-get install libgsl-dev
+          sudo apt-get install libgsl-dev
 
       - name: Run tests
         run: python -m tox -e ${{ matrix.tox-env }}
