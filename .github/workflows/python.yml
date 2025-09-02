@@ -40,6 +40,10 @@ jobs:
           python -m pip install -U pip
           python -m pip install -U tox
 
+      - name: Install GSL
+        run: |
+          apt-get install libgsl-dev
+
       - name: Run tests
         run: python -m tox -e ${{ matrix.tox-env }}
 
